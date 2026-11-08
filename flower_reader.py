@@ -17,6 +17,8 @@ import sys
 import cv2
 import numpy as np
 
+from quadrant_control import open_controller, quadrant_for_bits
+
 
 # Approved physical layout, measured in millimetres.
 # The perspective-corrected image starts at the outside of the black border.
@@ -408,6 +410,9 @@ def main() -> int:
         metavar="HTML",
         help="Write printable cards and exit",
     )
+    motor_options = parser.add_mutually_exclusive_group()
+    motor_options.add_argument("--serial", metavar="PORT", help="Enable motor via USB, e.g. /dev/ttyACM0")
+    motor_options.add_argument("--dry-run", action="store_true", help="Simulate motor; no serial port opened")
     args = parser.parse_args()
 
     if args.print_cards:
@@ -439,12 +444,27 @@ def main() -> int:
         return 1
 
     history = deque(maxlen=STABLE_FRAMES)
+    motor = None
+    if args.serial or args.dry_run:
+        try:
+            motor = open_controller(args.serial, args.dry_run)
+        except (OSError, RuntimeError, ValueError) as exc:
+            capture.release()
+            print(f"Cannot open motor connection: {exc}", file=sys.stderr)
+            return 1
+        print("Motor controls: [ / ] = jog -/+40 pulses before zero, z = set Q1 zero, s = STOP")
+    last_reset = 0
 
     try:
         cv2.namedWindow("Flower reader", cv2.WINDOW_NORMAL)
         cv2.namedWindow("Corrected card", cv2.WINDOW_NORMAL)
 
         while True:
+            if motor:
+                motor.poll()
+                if motor.reset_count != last_reset:
+                    history.clear()
+                    last_reset = motor.reset_count
             ok, frame = capture.read()
             if not ok:
                 print(
@@ -454,6 +474,7 @@ def main() -> int:
                 break
 
             reading = detect_card(frame)
+            confirmed_bits = None
 
             if reading.bits is None:
                 history.clear()
@@ -465,13 +486,20 @@ def main() -> int:
                 history.append(reading.bits)
 
                 if len(history) == STABLE_FRAMES:
+                    confirmed_bits = reading.bits
                     flower = int(reading.bits, 2) + 1
                     message = f"{reading.bits}  Flower {flower}"
+                    if motor:
+                        message += f"  Q{quadrant_for_bits(reading.bits)}"
                 else:
                     message = (
                         f"Checking {reading.bits} "
                         f"({len(history)}/{STABLE_FRAMES})"
                     )
+
+            if motor:
+                motor.observe(confirmed_bits)
+                motor.poll()
 
             if reading.quad is not None:
                 cv2.polylines(
@@ -496,6 +524,13 @@ def main() -> int:
                     thickness,
                 )
 
+            if motor:
+                motor_text = ("SIM " if args.dry_run else "MOTOR ") + motor.message
+                for color, thickness in [((0, 0, 0), 4), ((255, 255, 255), 1)]:
+                    cv2.putText(frame, motor_text, (12, 54), cv2.FONT_HERSHEY_SIMPLEX,
+                                0.45, color, thickness)
+                cv2.putText(frame, "[ / ] jog   z zero   s STOP   q quit", (12, 78),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 200, 255), 1)
             cv2.imshow("Flower reader", frame)
 
             preview = (
@@ -511,6 +546,15 @@ def main() -> int:
             key = cv2.waitKey(1) & 0xFF
             if key in (ord("q"), 27):
                 break
+            if motor:
+                if key == ord("s"):
+                    motor.stop()
+                    history.clear()
+                elif key == ord("z"):
+                    motor.zero()
+                    history.clear()
+                elif key in (ord("["), ord("]")):
+                    motor.jog(-40 if key == ord("[") else 40)
 
             if any(
                 cv2.getWindowProperty(
@@ -523,6 +567,8 @@ def main() -> int:
     except KeyboardInterrupt:
         pass
     finally:
+        if motor:
+            motor.close()
         capture.release()
         cv2.destroyAllWindows()
 
