@@ -137,13 +137,19 @@ class QuadrantController:
     def _receive_bytes(self, raw: bytes):
         LOGGER.debug("Arduino RX: %r", raw)
         # Opening a Mega's USB port may expose stale bytes/startup chatter.
-        # Only the exact READY line can arm this session. Do not accept old
-        # ACK/DONE messages or allow ZERO/JOG/Q until that handshake arrives.
-        if not self.ready and raw.strip() != b"READY NEED_ZERO":
-            sample = repr(raw[:160])
-            self._startup_samples.append(sample)
-            LOGGER.warning("Waiting for READY NEED_ZERO; ignored startup line: %s", sample)
-            return
+        # USB startup NUL bytes may share the first line with READY. Remove
+        # only that leading padding before the initial exact handshake. Never
+        # sanitize ACK/DONE replies or accept other prefixes as valid READY.
+        if not self.ready:
+            startup_line = raw.strip().lstrip(b"\x00")
+            if startup_line != b"READY NEED_ZERO":
+                sample = repr(raw[:160])
+                self._startup_samples.append(sample)
+                LOGGER.warning("Waiting for READY NEED_ZERO; ignored startup line: %s", sample)
+                return
+            if startup_line != raw.strip():
+                LOGGER.info("Discarded leading startup NUL bytes before READY NEED_ZERO")
+            raw = startup_line
         try:
             line = raw.decode("ascii").strip()
         except UnicodeDecodeError as exc:

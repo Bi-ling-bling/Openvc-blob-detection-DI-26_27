@@ -15,6 +15,10 @@ including non-ASCII bytes, without accepting acknowledgments or allowing jog,
 zero, or target commands. Its six-second boot timeout still applies. After READY,
 malformed replies cause a link fault. Use `--serial-debug` on `flower_reader.py`
 to show full RX/TX data in the terminal; faults always log their complete reason.
+Only leading NUL padding (`\x00`) on the initial READY line is removed before
+matching it. Thus `\x00\x00READY NEED_ZERO\r\n` is accepted, even across separate
+USB reads. Embedded/trailing NULs and arbitrary text prefixes are not accepted;
+after the initial handshake no NUL stripping is performed on any reply.
 
 | Host command | Arduino response | Behavior |
 |---|---|---|

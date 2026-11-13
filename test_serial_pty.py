@@ -65,6 +65,23 @@ class SerialTerminalTests(unittest.TestCase):
         self.assertFalse(self.controller.failed)
         self.assertFalse(self.controller.calibrated)
 
+    def test_real_serial_fragmented_nul_prefixed_ready_then_jog(self):
+        self.controller = QuadrantController(self.port)
+        os.write(self.master, b"\x00")
+        self.controller.poll()
+        self.assertFalse(self.controller.ready)
+        os.write(self.master, b"\x00READY NEED_ZERO\r\n")
+        self.controller.poll()
+        self.assertTrue(self.controller.ready)
+        self.assertFalse(self.controller.calibrated)
+        self.controller.jog(40)
+        self.assertEqual(os.read(self.master, 128), b"JOG 1 40\n")
+        os.write(self.master, b"ACK 1\r\nDONE 1 JOG POS 40\r\n")
+        self.controller.poll()
+        self.assertIsNone(self.controller.pending)
+        self.assertFalse(self.controller.failed)
+        self.assertFalse(self.controller.calibrated)
+
 
 if __name__ == "__main__":
     unittest.main()

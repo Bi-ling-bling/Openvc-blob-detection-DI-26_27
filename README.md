@@ -179,6 +179,10 @@ after READY still stop and disarm the client. A short camera-overlay message
 points to the terminal for the full fault; restart and recalibrate after fixing
 the cause. If it still fails, use the terminal's complete RX/error lines to
 distinguish an old sketch, incorrect port, or corrupted serial data.
+Leading NUL bytes (`\x00`) attached to the initial `READY NEED_ZERO` line are
+discarded before checking that handshake, including when received in separate
+USB reads. Embedded/trailing NULs and other prefixes are not accepted. Replies
+after the handshake are never cleaned this way and still fault on corruption.
 
 ## Existing cards
 
@@ -201,10 +205,10 @@ cannot request a new target.
 python -m unittest discover -v
 ```
 
-The 28 Python tests cover the existing 16 cards in four orientations, the real
+The 32 Python tests cover the existing 16 cards in four orientations, the real
 camera loop's five-consecutive-frame gate, all mappings and shortest paths,
 deduplication, ACK/DONE, calibration, STOP, resets, invalid results, timeouts,
-and disconnections. Three tests use real pyserial with Linux virtual serial ports
+and disconnections. Four tests use real pyserial with Linux virtual serial ports
 (skipped when pyserial or POSIX PTYs are unavailable).
 Startup-noise recovery, old-firmware diagnosis, jog acknowledgments, and serial
 diagnostic logging are also covered; malformed replies after READY still disarm.

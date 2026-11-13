@@ -220,6 +220,49 @@ class ControllerTests(unittest.TestCase):
         self.assertFalse(any(command.startswith(("Q ", "JOG ", "ZERO "))
                              for command in self.transport.commands))
 
+    def test_user_reported_fragmented_nul_prefix_then_jog(self):
+        self.transport.output = bytearray(b"\x00")
+        self.controller = QuadrantController(self.transport, lambda: self.now)
+        self.controller.poll()
+        self.assertFalse(self.controller.ready)
+        self.assertEqual(self.transport.commands, [])
+        self.transport.output.extend(b"\x00READY NEED_ZERO\r\n")
+        with self.assertLogs("quadrant_control", level="INFO"):
+            self.controller.poll()
+        self.assertTrue(self.controller.ready)
+        self.assertFalse(self.controller.calibrated)
+        self.assertFalse(self.controller.failed)
+        self.assertEqual(self.transport.commands, [])
+        self.controller.jog(40)
+        self.advance(2)
+        self.assertEqual(self.transport.position, 40)
+        self.assertIsNone(self.controller.pending)
+        self.assertFalse(self.controller.calibrated)
+        self.assertFalse(self.controller.failed)
+
+    def test_embedded_nul_suffix_and_other_ready_prefixes_never_arm(self):
+        for raw in (b"REA\x00DY NEED_ZERO\n", b"READY NEED_ZERO\x00\n",
+                    b"debug READY NEED_ZERO\n", b"\xffREADY NEED_ZERO\n"):
+            with self.subTest(raw=raw):
+                self.transport.output = bytearray(raw)
+                self.controller = QuadrantController(self.transport, lambda: self.now)
+                with self.assertLogs("quadrant_control", level="WARNING"):
+                    self.controller.poll()
+                self.controller.zero()
+                self.controller.jog(40)
+                self.assertFalse(self.controller.ready)
+                self.assertFalse(self.controller.calibrated)
+                self.assertEqual(self.transport.commands, [])
+
+    def test_nul_prefixed_ready_after_handshake_still_disarms(self):
+        self.zero()
+        self.transport.output.extend(b"\x00READY NEED_ZERO\r\n")
+        with self.assertLogs("quadrant_control", level="ERROR"):
+            self.controller.poll()
+        self.assertTrue(self.controller.failed)
+        self.assertFalse(self.controller.calibrated)
+        self.assertIn("\\x00READY", self.controller.fault_reason)
+
     def test_control_bytes_after_ready_are_visible_and_still_disarm(self):
         self.transport.output.extend(b"\x00\n")
         with self.assertLogs("quadrant_control", level="ERROR") as captured:
