@@ -9,6 +9,7 @@ Generate printable cards:
 from __future__ import annotations
 
 import argparse
+import logging
 from collections import deque
 from dataclasses import dataclass
 from pathlib import Path
@@ -413,7 +414,11 @@ def main() -> int:
     motor_options = parser.add_mutually_exclusive_group()
     motor_options.add_argument("--serial", metavar="PORT", help="Enable motor via USB, e.g. /dev/ttyACM0")
     motor_options.add_argument("--dry-run", action="store_true", help="Simulate motor; no serial port opened")
+    parser.add_argument("--serial-debug", action="store_true",
+                        help="Print complete Arduino RX/TX lines in the terminal")
     args = parser.parse_args()
+    if args.serial_debug:
+        logging.basicConfig(level=logging.DEBUG, format="%(levelname)s: %(message)s")
 
     if args.print_cards:
         if args.print_cards.exists():

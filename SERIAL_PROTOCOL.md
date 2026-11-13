@@ -10,6 +10,11 @@ There is no automatic retry or persistent command-ID cache.
 Boot/reset always emits `READY NEED_ZERO`. No absolute quadrant move is accepted
 until manual zero is established. No previous calibration is restored from disk
 or EEPROM. All positions below are pulse coordinates relative to declared zero.
+Before this exact READY handshake, Python ignores and logs stale/startup lines,
+including non-ASCII bytes, without accepting acknowledgments or allowing jog,
+zero, or target commands. Its six-second boot timeout still applies. After READY,
+malformed replies cause a link fault. Use `--serial-debug` on `flower_reader.py`
+to show full RX/TX data in the terminal; faults always log their complete reason.
 
 | Host command | Arduino response | Behavior |
 |---|---|---|

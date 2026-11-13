@@ -185,6 +185,64 @@ class ControllerTests(unittest.TestCase):
             self.controller.poll()
         self.assertTrue(self.controller.calibrated)
 
+    def test_startup_chatter_then_ready_allows_calibration_and_jog(self):
+        self.transport = SimulatedTransport(lambda: self.now)
+        self.transport.output = bytearray(b"old test banner\r\n\x00\xff\r\nACK 90\nDONE 90 ZERO POS 0\n")
+        self.controller = QuadrantController(self.transport, lambda: self.now)
+        with self.assertLogs("quadrant_control", level="WARNING"):
+            self.controller.poll()
+        self.assertFalse(self.controller.ready)
+        self.assertFalse(self.controller.calibrated)
+        self.assertFalse(self.controller.failed)
+        self.controller.zero()
+        self.controller.jog(40)
+        self.assertEqual(self.transport.commands, [])
+        self.transport._emit("READY NEED_ZERO")
+        self.controller.poll()
+        self.controller.jog(40)
+        self.advance(2)
+        self.assertEqual(self.transport.position, 40)
+        self.assertFalse(self.controller.failed)
+        self.assertFalse(self.controller.calibrated)
+        self.zero()
+
+    def test_old_firmware_times_out_with_upload_instructions(self):
+        self.transport.output = bytearray(b"Starting continuous motor test\n")
+        self.controller = QuadrantController(self.transport, lambda: self.now)
+        with self.assertLogs("quadrant_control", level="WARNING") as captured:
+            self.advance(6.5)
+        self.assertTrue(self.controller.failed)
+        self.assertFalse(self.controller.calibrated)
+        self.assertIn("Upload quadrant_positioner.ino", self.controller.fault_reason)
+        self.assertIn("Starting continuous motor test", self.controller.fault_reason)
+        self.assertIn("115200", self.controller.fault_reason)
+        self.assertIn("Upload quadrant_positioner.ino", "\n".join(captured.output))
+        self.assertFalse(any(command.startswith(("Q ", "JOG ", "ZERO "))
+                             for command in self.transport.commands))
+
+    def test_control_bytes_after_ready_are_visible_and_still_disarm(self):
+        self.transport.output.extend(b"\x00\n")
+        with self.assertLogs("quadrant_control", level="ERROR") as captured:
+            self.controller.poll()
+        self.assertTrue(self.controller.failed)
+        self.assertIn("\\x00", self.controller.fault_reason)
+        self.assertIn("\\x00", "\n".join(captured.output))
+        self.assertIn("see terminal", self.controller.message)
+
+    def test_non_ascii_after_ready_still_disarms(self):
+        self.transport.output.extend(b"\xff\n")
+        with self.assertLogs("quadrant_control", level="ERROR"):
+            self.controller.poll()
+        self.assertTrue(self.controller.failed)
+        self.assertIn("Non-ASCII", self.controller.fault_reason)
+
+    def test_serial_debug_logs_complete_rx_and_tx(self):
+        with self.assertLogs("quadrant_control", level="DEBUG") as captured:
+            self.zero()
+        output = "\n".join(captured.output)
+        self.assertIn("Arduino TX: 'ZERO 1'", output)
+        self.assertIn("DONE 1 ZERO POS 0", output)
+
 
 if __name__ == "__main__":
     unittest.main()

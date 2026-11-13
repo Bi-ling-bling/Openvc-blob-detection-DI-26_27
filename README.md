@@ -154,6 +154,32 @@ a stall, or external shaft movement, never reuse the old software position.
 Without an encoder the firmware can acknowledge pulse completion, but cannot
 detect mechanical missed steps; confirm the marks locally under the actual load.
 
+### Jogging disabled or “Malformed reply”
+
+A motor link fault disables the jog keys. Before checking motor wiring, confirm
+that `quadrant_positioner.ino` was successfully uploaded to the Mega; the old
+continuous-rotation test sketch cannot speak this protocol. Close Serial Monitor
+and other serial tools, quit the reader, then start the updated reader with:
+
+```bash
+python flower_reader.py --serial /dev/ttyACM0 --serial-debug
+```
+
+Use your actual port. The terminal prints the complete received/transmitted
+serial bytes, including escaped nonprintable characters. Wait for
+`READY NEED_ZERO` and the alignment prompt before pressing `[` or `]`; keep
+cards out of view and do not press `z` until Q1 is physically aligned. A jog
+should produce `JOG id 40` (or −40), `ACK id`, and `DONE id JOG POS p` in the log.
+
+The client now ignores stale startup lines until the exact READY handshake,
+without enabling any movement or accepting old acknowledgments. If READY never
+arrives within six seconds, the terminal reports the received startup data and
+asks you to check the uploaded sketch and the port. Unexpected/corrupt replies
+after READY still stop and disarm the client. A short camera-overlay message
+points to the terminal for the full fault; restart and recalibrate after fixing
+the cause. If it still fails, use the terminal's complete RX/error lines to
+distinguish an old sketch, incorrect port, or corrupted serial data.
+
 ## Existing cards
 
 Continue using your current 100 × 60 mm matte cards: 2 mm black border inset
@@ -175,11 +201,13 @@ cannot request a new target.
 python -m unittest discover -v
 ```
 
-The 22 Python tests cover the existing 16 cards in four orientations, the real
+The 28 Python tests cover the existing 16 cards in four orientations, the real
 camera loop's five-consecutive-frame gate, all mappings and shortest paths,
 deduplication, ACK/DONE, calibration, STOP, resets, invalid results, timeouts,
-and disconnections. Two tests use real pyserial with Linux virtual serial ports
+and disconnections. Three tests use real pyserial with Linux virtual serial ports
 (skipped when pyserial or POSIX PTYs are unavailable).
+Startup-noise recovery, old-firmware diagnosis, jog acknowledgments, and serial
+diagnostic logging are also covered; malformed replies after READY still disarm.
 
 For the native firmware tests, point `ACCELSTEPPER_SRC` to the installed
 AccelStepper 1.64 library's `src` directory (which contains `AccelStepper.cpp`):

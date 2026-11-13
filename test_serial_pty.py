@@ -48,6 +48,23 @@ class SerialTerminalTests(unittest.TestCase):
         self.assertTrue(self.controller.failed)
         self.assertFalse(self.controller.calibrated)
 
+    def test_real_serial_startup_noise_then_jog_ack_done(self):
+        self.controller = QuadrantController(self.port)
+        os.write(self.master, b"motor-test boot banner\n\x00\xff\n")
+        with self.assertLogs("quadrant_control", level="WARNING"):
+            self.controller.poll()
+        self.assertFalse(self.controller.ready)
+        self.assertFalse(self.controller.failed)
+        os.write(self.master, b"READY NEED_ZERO\r\n")
+        self.controller.poll()
+        self.controller.jog(40)
+        self.assertEqual(os.read(self.master, 128), b"JOG 1 40\n")
+        os.write(self.master, b"ACK 1\r\nDONE 1 JOG POS 40\r\n")
+        self.controller.poll()
+        self.assertIsNone(self.controller.pending)
+        self.assertFalse(self.controller.failed)
+        self.assertFalse(self.controller.calibrated)
+
 
 if __name__ == "__main__":
     unittest.main()

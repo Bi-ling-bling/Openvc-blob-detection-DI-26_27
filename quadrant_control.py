@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from collections import deque
+import logging
 import math
 import time
 
@@ -9,6 +11,7 @@ STEPS_PER_REV = 3200
 STEPS_PER_QUADRANT = 800
 MAX_SPEED = 600.0
 ACCELERATION = 300.0
+LOGGER = logging.getLogger(__name__)
 
 
 def quadrant_for_bits(bits: str) -> int:
@@ -57,6 +60,8 @@ class QuadrantController:
         self._heartbeat = clock()
         self._last_reply = clock()
         self.reset_count = 0
+        self.fault_reason: str | None = None
+        self._startup_samples = deque(maxlen=3)
 
     def observe(self, bits: str | None):
         """Pass only a five-frame confirmed code, or None when unconfirmed."""
@@ -68,6 +73,7 @@ class QuadrantController:
         self.bits = bits
 
     def _write(self, line: str):
+        LOGGER.debug("Arduino TX: %r", line)
         data = (line + "\n").encode("ascii")
         if self.transport.write(data) != len(data):
             raise OSError("Incomplete serial write")
@@ -124,7 +130,25 @@ class QuadrantController:
         self.pending = None
         self.bits = None
         self.reached = None
-        self.message = f"Motor link fault: {reason}; restart and zero again"
+        self.fault_reason = reason
+        self.message = "Motor link fault; see terminal. Restart and zero again"
+        LOGGER.error("Motor link fault: %s", reason)
+
+    def _receive_bytes(self, raw: bytes):
+        LOGGER.debug("Arduino RX: %r", raw)
+        # Opening a Mega's USB port may expose stale bytes/startup chatter.
+        # Only the exact READY line can arm this session. Do not accept old
+        # ACK/DONE messages or allow ZERO/JOG/Q until that handshake arrives.
+        if not self.ready and raw.strip() != b"READY NEED_ZERO":
+            sample = repr(raw[:160])
+            self._startup_samples.append(sample)
+            LOGGER.warning("Waiting for READY NEED_ZERO; ignored startup line: %s", sample)
+            return
+        try:
+            line = raw.decode("ascii").strip()
+        except UnicodeDecodeError as exc:
+            raise ValueError(f"Non-ASCII Arduino reply: {raw!r}") from exc
+        self._receive(line)
 
     def _receive(self, line: str):
         self._last_reply = self.clock()
@@ -136,6 +160,7 @@ class QuadrantController:
             self.pending = None
             self.bits = None
             self.reached = None
+            self._startup_samples.clear()
             self.message = "Align Q1 zero with [ / ]; press z to calibrate"
             return
         if fields == ["PONG"]:
@@ -143,11 +168,11 @@ class QuadrantController:
         if fields[:1] == ["FAULT"]:
             raise ValueError(line)
         if len(fields) < 2 or fields[0] not in ("ACK", "DONE", "ERR"):
-            raise ValueError(f"Malformed reply: {line}")
+            raise ValueError(f"Malformed reply: {line!r}")
         try:
             token = int(fields[1])
         except ValueError as exc:
-            raise ValueError(f"Malformed reply: {line}") from exc
+            raise ValueError(f"Malformed reply: {line!r}") from exc
         if fields[0] == "ERR":
             raise ValueError(line)
         pending = self.pending
@@ -188,18 +213,28 @@ class QuadrantController:
         if self.failed:
             return
         try:
-            self._buffer.extend(self.transport.read(4096))
+            incoming = self.transport.read(4096)
+            if incoming:
+                LOGGER.debug("Arduino RX bytes: %r", incoming)
+            self._buffer.extend(incoming)
             if len(self._buffer) > 4096:
                 raise ValueError("Oversized serial reply")
             while b"\n" in self._buffer:
                 line, _, rest = self._buffer.partition(b"\n")
                 self._buffer = bytearray(rest)
                 if line.strip():
-                    self._receive(line.decode("ascii").strip())
+                    self._receive_bytes(bytes(line))
             now = self.clock()
             if not self.ready:
                 if now - self._opened > 6:
-                    raise OSError("No READY from Arduino")
+                    samples = "; ".join(self._startup_samples) or "no complete lines received"
+                    if self._buffer:
+                        samples += f"; partial line: {bytes(self._buffer[:160])!r}"
+                    raise OSError(
+                        "No READY NEED_ZERO from Arduino at 115200 baud. "
+                        "Upload quadrant_positioner.ino to the Mega, close Serial Monitor, "
+                        f"check the USB port, then restart. Recent startup data: {samples}"
+                    )
                 return
             if now - self._heartbeat >= 0.5:
                 self._write("PING")
