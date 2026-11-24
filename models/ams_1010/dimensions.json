@@ -1,0 +1,24 @@
+{
+  "code": "1010",
+  "units": "mm",
+  "outside_diameter": 22,
+  "cap_length": 24,
+  "socket_diameter": 7.3,
+  "socket_depth": 12.3,
+  "inlay_depth": 0.6,
+  "black_rectangle_dimensions": [
+    12.0,
+    20.88888888888889
+  ],
+  "border_thickness": 0.4444444444444444,
+  "dot_diameter": 1.7777777777777777,
+  "corner_marker_size": 1.3333333333333333,
+  "white_solid_count": 1,
+  "black_solid_count": 4,
+  "white_volume": 7928.2832511965535,
+  "black_volume": 21.11202859007024,
+  "complete_volume": 7949.395279786624,
+  "shared_face_plane_before_print_rotation": -8.3,
+  "print_orientation": "label face down; black occupies print Z=0..0.6 mm",
+  "geometry_changes": "paper pocket removed; black inlays flush with white face; original stem unchanged"
+}
