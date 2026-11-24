@@ -1,0 +1,174 @@
+{
+  "diameter_in": 16.5,
+  "diameter_mm": 419.1,
+  "height_mm": 209.55,
+  "shape": "hemisphere",
+  "wall_thickness_mm": 4.0,
+  "stem_body_mm": 22.0,
+  "hole_diameter_mm": 22.5,
+  "hole_count": 16,
+  "main_piece_count": 12,
+  "levels": 3,
+  "quadrants": 4,
+  "holes_per_quadrant_by_level": [
+    2,
+    1,
+    1
+  ],
+  "level_order": "L1 lower, L2 middle, L3 upper",
+  "band_cut_heights_mm": [
+    0.0,
+    110.0,
+    170.0,
+    209.55
+  ],
+  "hole_center_heights_mm": [
+    71.67032103389391,
+    148.17422599764106,
+    196.91258868568713
+  ],
+  "guide_outer_diameter_mm": 30.0,
+  "guide_extra_inward_mm": 10.0,
+  "stem_stop_seat_diameter_mm": 32.6,
+  "stem_stop_seat_depth_mm": 0.8,
+  "glue_lip_width_mm": 8.0,
+  "glue_lip_thickness_mm": 2.2,
+  "glue_gap_mm": 0.2,
+  "upper_band_lip_extension_mm": 6.0,
+  "hidden_alignment_keys_per_band_joint": 4,
+  "canonical_holes": [
+    {
+      "level": 1,
+      "local_angle_deg": 22.5,
+      "global_angle_Q1_deg": -22.5,
+      "outer_center": [
+        181.9235103805199,
+        75.35518531413388,
+        71.67032103389391
+      ],
+      "normal": [
+        0.8681627791959908,
+        0.3596047974904981,
+        0.3420201433256688
+      ],
+      "height": 71.67032103389391,
+      "tilt_from_vertical_deg": 70.0
+    },
+    {
+      "level": 1,
+      "local_angle_deg": 67.5,
+      "global_angle_Q1_deg": 22.5,
+      "outer_center": [
+        75.35518531413389,
+        181.9235103805199,
+        71.67032103389391
+      ],
+      "normal": [
+        0.3596047974904982,
+        0.8681627791959908,
+        0.3420201433256688
+      ],
+      "height": 71.67032103389391,
+      "tilt_from_vertical_deg": 70.0
+    },
+    {
+      "level": 2,
+      "local_angle_deg": 45.0,
+      "global_angle_Q1_deg": 0.0,
+      "outer_center": [
+        104.775,
+        104.77499999999999,
+        148.17422599764106
+      ],
+      "normal": [
+        0.5,
+        0.4999999999999999,
+        0.7071067811865476
+      ],
+      "height": 148.17422599764106,
+      "tilt_from_vertical_deg": 45.0
+    },
+    {
+      "level": 3,
+      "local_angle_deg": 22.5,
+      "global_angle_Q1_deg": -22.5,
+      "outer_center": [
+        66.2147426917277,
+        27.42704445195839,
+        196.91258868568713
+      ],
+      "normal": [
+        0.315985410125162,
+        0.1308854423858668,
+        0.9396926207859084
+      ],
+      "height": 196.91258868568713,
+      "tilt_from_vertical_deg": 19.999999999999993
+    }
+  ],
+  "canonical_parts": [
+    {
+      "level": 1,
+      "volume": 155701.84754570483,
+      "raw_bounds": [
+        -7.984132709248661,
+        209.55,
+        -1.0000005132494735e-07,
+        209.55,
+        -1.000000384937105e-07,
+        116.00000000000006
+      ],
+      "print_bounds_mm": [
+        217.53413270924867,
+        209.55000010000006,
+        116.0000001000001
+      ],
+      "holes": 2,
+      "valid": true,
+      "solids": 1
+    },
+    {
+      "level": 2,
+      "volume": 87398.22666571183,
+      "raw_bounds": [
+        -6.5392922250015495,
+        178.35695258573855,
+        -1.0000004368485419e-07,
+        178.35695258573858,
+        109.99999989999996,
+        176.00000000000006
+      ],
+      "print_bounds_mm": [
+        184.89624481074011,
+        178.35695268573863,
+        66.0000001000001
+      ],
+      "holes": 1,
+      "valid": true,
+      "solids": 1
+    },
+    {
+      "level": 3,
+      "volume": 51113.02587315678,
+      "raw_bounds": [
+        -3.9841828084944626,
+        122.52021261816357,
+        -3.000879724273735e-14,
+        122.52021261816357,
+        169.99999999999994,
+        209.55
+      ],
+      "print_bounds_mm": [
+        126.50439542665804,
+        122.5202126181636,
+        39.55000000000007
+      ],
+      "holes": 1,
+      "valid": true,
+      "solids": 1
+    }
+  ],
+  "total_volume_mm3": 1176852.4003382938,
+  "solid_PLA_mass_kg": 1.4592969764194843,
+  "placement": "Print panels individually in their local STL poses; STEP shows assembly. Q1 center is +X."
+}

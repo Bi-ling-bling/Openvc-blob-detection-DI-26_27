@@ -1,0 +1,103 @@
+{
+  "cad_valid_solids": true,
+  "pairwise_intersections": [],
+  "meshes": [
+    {
+      "file": "Q1_L1_LOWER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 10538,
+      "volume_mm3": 155630.015625
+    },
+    {
+      "file": "Q1_L2_MIDDLE.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6864,
+      "volume_mm3": 87358.6875
+    },
+    {
+      "file": "Q1_L3_UPPER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6774,
+      "volume_mm3": 51050.18359375
+    },
+    {
+      "file": "Q2_L1_LOWER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 10538,
+      "volume_mm3": 155630.015625
+    },
+    {
+      "file": "Q2_L2_MIDDLE.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6864,
+      "volume_mm3": 87358.6875
+    },
+    {
+      "file": "Q2_L3_UPPER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6774,
+      "volume_mm3": 51050.18359375
+    },
+    {
+      "file": "Q3_L1_LOWER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 10538,
+      "volume_mm3": 155630.015625
+    },
+    {
+      "file": "Q3_L2_MIDDLE.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6864,
+      "volume_mm3": 87358.6875
+    },
+    {
+      "file": "Q3_L3_UPPER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6774,
+      "volume_mm3": 51050.18359375
+    },
+    {
+      "file": "Q4_L1_LOWER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 10538,
+      "volume_mm3": 155630.015625
+    },
+    {
+      "file": "Q4_L2_MIDDLE.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6864,
+      "volume_mm3": 87358.6875
+    },
+    {
+      "file": "Q4_L3_UPPER.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6774,
+      "volume_mm3": 51050.18359375
+    },
+    {
+      "file": "OPTIONAL_stem_clearance_test.stl",
+      "closed": true,
+      "components": 1,
+      "triangles": 6072,
+      "volume_mm3": 24726.759765625
+    }
+  ],
+  "pairwise_nonintersecting_pairs": 66,
+  "minimum_stem_envelope_axis_distance_mm": 53.860726943881296,
+  "stem_envelope_diameter_mm": 22,
+  "stem_inward_length_mm": 95,
+  "step_solid_count": 12,
+  "max_mesh_relative_volume_error": 0.0012294767983944688
+}
