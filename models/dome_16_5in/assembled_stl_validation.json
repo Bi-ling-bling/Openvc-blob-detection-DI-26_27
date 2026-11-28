@@ -1,0 +1,34 @@
+{
+  "file": "dome_16_5in_assembled.stl",
+  "triangles": 95030,
+  "mesh_components": 1,
+  "boundary_or_nonmanifold_edges": 0,
+  "every_edge_shared_by_two_faces": true,
+  "consistent_orientation": true,
+  "bounds_mm": [
+    -209.53372192382812,
+    209.53372192382812,
+    -209.53372192382812,
+    209.53372192382812,
+    -4.490932772145337e-14,
+    209.5500030517578
+  ],
+  "size_mm": [
+    419.06744384765625,
+    419.06744384765625,
+    209.55000305175787
+  ],
+  "cad_valid": true,
+  "cad_solids": 1,
+  "cad_volume_mm3": 1176842.2232686034,
+  "mesh_volume_mm3": 1176243.7041608803,
+  "relative_volume_error": 0.0005085805861561044,
+  "source_panels": 12,
+  "hole_count": 16,
+  "internal_apex_seam_fill": {
+    "radius_mm": 0.5,
+    "z_start_mm": 203.05,
+    "length_mm": 2.6
+  },
+  "sha256": "43eeaf234e495ab81ebf1bbdc126d2560c0a4c741f49187e1153316e3336ae0c"
+}

@@ -38,6 +38,20 @@ dome_16_5in_assembled.step is an assembled CAD reference, not a single
 object to print. The individual STLs are already moved onto Z=0.
 Use 100% scale and do not merge all 12 STLs into an overlapping object.
 
+ASSEMBLED STL (SEPARATE DOWNLOAD)
+dome_16_5in_assembled.stl contains the complete dome in its assembled
+position as one fused, closed solid. All 16 sockets and internal joint
+features are retained; shared panel interface faces are removed.
+An internal 0.5 mm-radius apex seam fill removes a mesh pinch where the
+four top-panel lips meet. The exterior and stem sockets are unchanged.
+Size: 419.1 x 419.1 x 209.55 mm. This whole-dome STL exceeds a 256 mm bed;
+use the individual panels for that printer. No scaling is needed to view
+the assembly. Keep 100% scale to preserve the existing stem socket fit.
+The original 12-panel ZIP remains the panel-printing package; this new
+assembled STL is downloaded separately from the same model folder.
+assembled_stl_validation.json records its CAD and mesh checks.
+To regenerate, install CadQuery and run python3 export_assembled_stl.py.
+
 PRINTER SIZE / STARTING SETTINGS
 Your printer model is unconfirmed. Prepared for a 256 x 256 mm or larger
 bed. Verify the sliced footprint before printing.
