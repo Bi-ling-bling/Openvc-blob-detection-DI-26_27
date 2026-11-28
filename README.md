@@ -52,6 +52,17 @@ deceleration, initially 600 pulses/s maximum and 300 pulses/s² acceleration
 (about 11.25 rpm maximum). Each step has 10 µs of direction setup and a 10 µs
 HIGH pulse. No other actuators are controlled.
 
+## Standalone one-direction motor test
+
+For a temporary motor-only check, open
+[`firmware/one_direction_test/one_direction_test.ino`](firmware/one_direction_test/one_direction_test.ino)
+in Arduino IDE. It automatically repeats 3200-pulse turns in one direction,
+accelerating and decelerating on each turn. Pins remain D2/D3/D4 and ENABLE
+LOW. See the [test instructions](firmware/one_direction_test/README.txt) for
+uploading and Serial Monitor stop/restart controls. Quit the flower reader
+before testing. Upload `quadrant_positioner.ino` again afterward to restore
+scanner-controlled positioning, then manually calibrate zero.
+
 ## Install and upload
 
 In your existing project directory on openSUSE, activate your existing virtual
